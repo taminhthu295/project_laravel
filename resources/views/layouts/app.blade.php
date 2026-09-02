@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@yield('title', 'Mini Book Management')</title>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="site-header__inner">
+            <div class="site-header__title">Mini Book Management</div>
+            <nav class="site-header__nav">
+                <a href="{{ route('books.index') }}">Sách</a>
+                <a href="{{ route('categories.index') }}">Thể loại</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        @if(session('success'))
+            <div class="alert">{{ session('success') }}</div>
+        @endif
+
+        @yield('content')
+    </main>
+</body>
+</html>

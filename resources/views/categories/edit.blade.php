@@ -1,13 +1,20 @@
+@extends('layouts.app')
+@section('title', 'Sửa thể loại')
+
+@section('content')
 <h1>Sửa thể loại</h1>
 
-<form action="{{ route('categories.update', $category) }}" method="POST">
-    @csrf
-    @method('PUT')
-    <label>Tên thể loại:</label>
-    <input type="text" name="name" value="{{ old('name', $category->name) }}">
-    @error('name') <p style="color:red">{{ $message }}</p> @enderror
-
-    <button type="submit">Cập nhật</button>
-</form>
-
-<a href="{{ route('categories.index') }}">Quay lại</a>
+<div class="form-card">
+    <form action="{{ route('categories.update', $category) }}" method="POST">
+        @csrf
+        @method('PUT')
+        <div class="field">
+            <label>Tên thể loại</label>
+            <input type="text" name="name" value="{{ old('name', $category->name) }}">
+            @error('name') <div class="field-error">{{ $message }}</div> @enderror
+        </div>
+        <button type="submit" class="btn btn-primary">Cập nhật</button>
+        <a href="{{ route('categories.index') }}" class="btn">Hủy</a>
+    </form>
+</div>
+@endsection

@@ -1,10 +1,38 @@
+@extends('layouts.app')
+@section('title', $book->title)
+
+@section('content')
+@php
+    $statusClass = match($book->status) {
+        'Reading' => 'status--reading',
+        'Read' => 'status--read',
+        default => 'status--want',
+    };
+@endphp
+
 <h1>{{ $book->title }}</h1>
 
-<p><strong>Tác giả:</strong> {{ $book->author }}</p>
-<p><strong>Thể loại:</strong> {{ $book->category->name ?? 'N/A' }}</p>
-<p><strong>Mô tả:</strong> {{ $book->description }}</p>
-<p><strong>Năm xuất bản:</strong> {{ $book->published_year }}</p>
-<p><strong>Trạng thái:</strong> {{ $book->status }}</p>
+<div class="detail">
+    <dl>
+        <dt>Tác giả</dt>
+        <dd>{{ $book->author }}</dd>
 
-<a href="{{ route('books.edit', $book) }}">Sửa</a>
-<a href="{{ route('books.index') }}">Quay lại danh sách</a>
+        <dt>Thể loại</dt>
+        <dd>{{ $book->category->name ?? 'N/A' }}</dd>
+
+        <dt>Mô tả</dt>
+        <dd>{{ $book->description ?: '—' }}</dd>
+
+        <dt>Năm xuất bản</dt>
+        <dd>{{ $book->published_year ?: '—' }}</dd>
+
+        <dt>Trạng thái</dt>
+        <dd><span class="status {{ $statusClass }}">{{ $book->status }}</span></dd>
+    </dl>
+
+    <div class="detail-actions">
+        <a href="{{ route('books.edit', $book) }}" class="btn btn-primary">Sửa</a>
+        <a href="{{ route('books.index') }}" class="btn">Quay lại</a>
+    </div>
+</div>
+@endsection
