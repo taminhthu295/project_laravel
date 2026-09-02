@@ -2,63 +2,100 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // Danh sách sách + tìm kiếm + lọc
+    public function index(Request $request)
     {
-        //
+        $query = Book::with('category');
+
+        // Tìm kiếm theo tên
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        // Lọc theo thể loại
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // Lọc theo trạng thái
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $books = $query->latest()->get();
+        $categories = Category::all();
+
+        return view('books.index', compact('books', 'categories'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Form thêm sách
     public function create()
     {
-        //
+        $categories = Category::all();
+        return view('books.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Lưu sách mới
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'description' => 'nullable|string',
+            'published_year' => 'nullable|digits:4|integer',
+            'status' => 'required|in:Want to Read,Reading,Read',
+        ]);
+
+        Book::create($request->all());
+
+        return redirect()->route('books.index')
+            ->with('success', 'Thêm sách thành công.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // Xem chi tiết sách
+    public function show(Book $book)
     {
-        //
+        return view('books.show', compact('book'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    // Form sửa sách
+    public function edit(Book $book)
     {
-        //
+        $categories = Category::all();
+        return view('books.edit', compact('book', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    // Cập nhật sách
+    public function update(Request $request, Book $book)
     {
-        //
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'description' => 'nullable|string',
+            'published_year' => 'nullable|digits:4|integer',
+            'status' => 'required|in:Want to Read,Reading,Read',
+        ]);
+
+        $book->update($request->all());
+
+        return redirect()->route('books.index')
+            ->with('success', 'Cập nhật sách thành công.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    // Xóa sách
+    public function destroy(Book $book)
     {
-        //
+        $book->delete();
+
+        return redirect()->route('books.index')
+            ->with('success', 'Xóa sách thành công.');
     }
 }
