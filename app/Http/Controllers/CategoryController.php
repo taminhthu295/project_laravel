@@ -9,10 +9,10 @@ class CategoryController extends Controller
 {
     // Danh sách thể loại
     public function index()
-    {
-        $categories = Category::all();
-        return view('categories.index', compact('categories'));
-    }
+{
+    $categories = Category::withCount('books')->orderBy('name')->get();
+    return view('categories.index', compact('categories'));
+}
 
     // Form thêm thể loại
     public function create()
