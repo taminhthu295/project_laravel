@@ -45,12 +45,15 @@ class BookController extends Controller
             'published_year' => 'nullable|integer|min:1|max:' . (date('Y') + 1),
             'status' => 'required|in:Want to Read,Reading,Read',
             'image' => 'nullable|image|max:2048',
+            'image_url' => 'nullable|url|max:2048',
         ]);
 
-        $data = $request->except('image');
+        $data = $request->except(['image', 'image_url']);
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('books', 'public');
+        } elseif ($request->filled('image_url')) {
+            $data['image'] = $request->image_url;
         }
 
         Book::create($data);
@@ -81,17 +84,25 @@ class BookController extends Controller
             'published_year' => 'nullable|integer|min:1|max:' . (date('Y') + 1),
             'status' => 'required|in:Want to Read,Reading,Read',
             'image' => 'nullable|image|max:2048',
+            'image_url' => 'nullable|url|max:2048',
         ]);
 
-        $data = $request->except(['image', 'remove_image']);
+        $data = $request->except(['image', 'image_url', 'remove_image']);
+
+        $isLocalImage = $book->image && !str_starts_with($book->image, 'http://') && !str_starts_with($book->image, 'https://');
 
         if ($request->hasFile('image')) {
-            if ($book->image) {
+            if ($isLocalImage) {
                 Storage::disk('public')->delete($book->image);
             }
             $data['image'] = $request->file('image')->store('books', 'public');
+        } elseif ($request->filled('image_url')) {
+            if ($isLocalImage) {
+                Storage::disk('public')->delete($book->image);
+            }
+            $data['image'] = $request->image_url;
         } elseif ($request->boolean('remove_image')) {
-            if ($book->image) {
+            if ($isLocalImage) {
                 Storage::disk('public')->delete($book->image);
             }
             $data['image'] = null;
@@ -105,7 +116,7 @@ class BookController extends Controller
 
     public function destroy(Book $book)
     {
-        if ($book->image) {
+        if ($book->image && !str_starts_with($book->image, 'http://') && !str_starts_with($book->image, 'https://')) {
             Storage::disk('public')->delete($book->image);
         }
         $book->delete();

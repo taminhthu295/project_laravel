@@ -56,7 +56,7 @@
             <label for="category_id">Thể loại</label>
 
             <select id="category_id" name="category_id">
-                <option value="">-- Chọn thể loại (Tùy chọn) --</option>
+                <option value="">-- Chọn thể loại --</option>
 
                 @foreach($categories as $category)
                     <option
@@ -145,33 +145,55 @@
 
         {{-- Ảnh sách --}}
         <div class="field">
-            <label for="image">Ảnh sách</label>
+            <label>Ảnh bìa sách (Tùy chọn)</label>
 
             <div class="image-upload">
-                <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    accept="image/*"
-                    onchange="previewBookImage(event)"
-                >
+                {{-- Cách 1: Tải file từ máy tính --}}
+                <div class="image-upload-group">
+                    <label for="image">1. Tải ảnh từ máy tính (Tối đa 2MB)</label>
+                    <input
+                        type="file"
+                        id="image"
+                        name="image"
+                        accept="image/*"
+                        onchange="previewBookFile(event)"
+                    >
+                </div>
 
-                <p class="image-upload__hint">
-                    Có thể chọn ảnh bìa sách. Dung lượng tối đa 2MB.
-                </p>
+                <div class="image-divider">
+                    <span>HOẶC</span>
+                </div>
+
+                {{-- Cách 2: Dán liên kết ảnh trực tuyến --}}
+                <div class="image-upload-group">
+                    <label for="image_url">2. Dán liên kết ảnh trực tuyến (URL)</label>
+                    <input
+                        type="url"
+                        id="image_url"
+                        name="image_url"
+                        value="{{ old('image_url') }}"
+                        placeholder="Ví dụ: https://images.unsplash.com/... hoặc link ảnh từ Goodreads, Tiki..."
+                        oninput="previewBookUrl(this.value)"
+                    >
+                </div>
 
                 <div class="image-preview-wrapper">
                     <img
                         id="image-preview"
                         class="image-preview"
-                        src=""
-                        alt="Xem trước ảnh sách"
-                        style="display: none;"
+                        src="{{ old('image_url') ?: '' }}"
+                        alt="Xem trước ảnh bìa sách"
+                        style="{{ old('image_url') ? '' : 'display: none;' }}"
+                        onerror="handleImageError(this)"
                     >
+                    <p id="image-error-text" class="field-error" style="display: none; margin-top: 6px;">Không thể tải ảnh từ link này. Vui lòng kiểm tra lại URL.</p>
                 </div>
             </div>
 
             @error('image')
+                <div class="field-error">{{ $message }}</div>
+            @enderror
+            @error('image_url')
                 <div class="field-error">{{ $message }}</div>
             @enderror
         </div>
@@ -198,22 +220,52 @@
 
 
 <script>
-    function previewBookImage(event) {
+    function previewBookFile(event) {
         const input = event.target;
         const preview = document.getElementById('image-preview');
+        const errorText = document.getElementById('image-error-text');
+        const urlInput = document.getElementById('image_url');
+
+        if (errorText) errorText.style.display = 'none';
 
         if (input.files && input.files[0]) {
-            const reader = new FileReader();
+            if (urlInput) urlInput.value = '';
 
+            const reader = new FileReader();
             reader.onload = function(e) {
                 preview.src = e.target.result;
                 preview.style.display = 'block';
             };
-
             reader.readAsDataURL(input.files[0]);
+        } else if (!urlInput || !urlInput.value) {
+            preview.src = '';
+            preview.style.display = 'none';
+        }
+    }
+
+    function previewBookUrl(url) {
+        const preview = document.getElementById('image-preview');
+        const errorText = document.getElementById('image-error-text');
+        const fileInput = document.getElementById('image');
+
+        if (errorText) errorText.style.display = 'none';
+
+        if (url && url.trim() !== '') {
+            if (fileInput) fileInput.value = '';
+
+            preview.src = url.trim();
+            preview.style.display = 'block';
         } else {
             preview.src = '';
             preview.style.display = 'none';
+        }
+    }
+
+    function handleImageError(img) {
+        img.style.display = 'none';
+        const errorText = document.getElementById('image-error-text');
+        if (errorText && document.getElementById('image_url') && document.getElementById('image_url').value.trim() !== '') {
+            errorText.style.display = 'block';
         }
     }
 </script>

@@ -222,6 +222,32 @@ Tài liệu này tổng hợp toàn bộ quá trình rà soát, phát hiện l�
 
 ---
 
+### Cải tiến 4: Hỗ Trợ Chèn Ảnh Linh Hoạt (Upload File & Dán Link URL)
+
+* **Vấn đề & Nhu cầu:** Người dùng muốn có thể copy-paste link ảnh trực tiếp từ internet (Goodreads, Tiki, Amazon...) thay vì phải tải ảnh về máy rồi upload.
+* **Xử lý:**
+  1. **Database:** Tạo migration [2026_09_04_101130_change_image_column_in_books_table.php](database/migrations/2026_09_04_101130_change_image_column_in_books_table.php) chuyển kiểu cột `image` sang `TEXT` để lưu trữ an toàn các URL dài mà không sợ lỗi vượt quá 255 ký tự.
+  2. **Model:** Bổ sung Accessor `image_url` tại [app/Models/Book.php](app/Models/Book.php):
+     * Nếu bắt đầu bằng `http://` hoặc `https://`: trả về trực tiếp URL.
+     * Nếu là file upload nội bộ: trả về `asset('storage/' . $this->image)`.
+  3. **Controller:** Cập nhật `BookController` tại `store()`, `update()`, và `destroy()`:
+     * Chấp nhận cả trường `image` (file) và `image_url` (link URL hợp lệ).
+     * Phân biệt file nội bộ và URL bên ngoài để chỉ xóa file vật lý trên đĩa khi đó là file nội bộ (tránh lỗi khi xóa sách có ảnh URL).
+  4. **Giao diện & Xem trước tức thì:**
+     * Cập nhật [create.blade.php](resources/views/books/create.blade.php) và [edit.blade.php](resources/views/books/edit.blade.php) với 2 tùy chọn rõ ràng phân cách bằng chữ "HOẶC".
+     * JavaScript hỗ trợ xem trước (instant preview) cho cả 2 nguồn: file từ máy tính (qua `FileReader`) hoặc link dán vào (qua sự kiện `oninput`), tự động bắt lỗi nếu link ảnh bị hỏng (`onerror`).
+
+---
+
+### Cải tiến 5: Bổ Sung Nút Xóa Sách Trực Tiếp Trong Form Sửa Sách
+
+* **Vấn đề & Nhu cầu:** Khi người dùng đang ở trang chỉnh sửa chi tiết sách ([books/edit.blade.php](resources/views/books/edit.blade.php)), nếu quyết định xóa cuốn sách đó thì phải quay lại trang danh sách, tìm đúng dòng sách rồi mới bấm xóa.
+* **Xử lý:**
+  * Bổ sung nút **"Xóa sách này"** (màu đỏ gạch `.btn-danger`, có icon thùng rác và hộp thoại xác nhận `confirm()`) ngay trong cụm nút bấm tại [books/edit.blade.php](resources/views/books/edit.blade.php).
+  * Sử dụng thuộc tính chuẩn `form="delete-book-form"` của HTML5 liên kết tới một form ẩn riêng biệt có `@method('DELETE')` bên ngoài form chính, đảm bảo không vi phạm quy tắc lồng thẻ `<form>` trong chuẩn HTML.
+
+---
+
 ## 4. Lưu Ý Về File `UserController.php`
 
 * **Trạng thái hiện tại:** File [app/Http/Controllers/UserController.php](app/Http/Controllers/UserController.php) hiện là một controller rỗng (chỉ gồm các method stub `index`, `create`, `store`... sinh tự động từ Artisan).
@@ -241,4 +267,7 @@ Tài liệu này tổng hợp toàn bộ quá trình rà soát, phát hiện l�
 | 5 | Tạo thể loại trùng tên đã có | Form từ chối, hiển thị lỗi "Tên thể loại này đã tồn tại" |  Đạt |
 | 6 | Sửa sách và tick chọn "Xóa ảnh bìa hiện tại" | Ảnh bìa bị xóa khỏi ổ đĩa server; sách chuyển về trạng thái không có ảnh |  Đạt |
 | 7 | Chuyển qua các trang phân trang (Trang 1 -> 2) | Bộ lọc tìm kiếm được giữ nguyên; số STT nối tiếp chính xác (11, 12...) |  Đạt |
-| 8 | Biên dịch kiểm tra toàn bộ Blade & PHP | `artisan view:cache` & `php -l` không phát hiện bất kỳ lỗi cú pháp nào |  Đạt |
+| 8 | Thêm / Sửa sách bằng dán link URL ảnh | Ảnh xem trước tức thì, lưu thành công, hiển thị chuẩn ở trang chi tiết |  Đạt |
+| 9 | Xóa sách trực tiếp ngay trên Form sửa sách | Hộp thoại xác nhận hiện ra; xác nhận xóa thành công và điều hướng về trang chủ kèm flash message |  Đạt |
+| 10 | Biên dịch kiểm tra toàn bộ Blade & PHP | `artisan view:cache` & `php -l` không phát hiện bất kỳ lỗi cú pháp nào |  Đạt |
+

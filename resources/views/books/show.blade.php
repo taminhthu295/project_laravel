@@ -15,7 +15,7 @@
 </div>
 
 <div class="detail">
-    <div class="detail-content {{ $book->image ? '' : 'no-image' }}">
+    <div class="detail-content {{ $book->image_url ? '' : 'no-image' }}">
 
         {{-- THÔNG TIN SÁCH (BÊN TRÁI) --}}
         <div class="detail-info">
@@ -44,10 +44,10 @@
         </div>
 
         {{-- ẢNH SÁCH (BÊN PHẢI - NẾU CÓ) --}}
-        @if($book->image)
+        @if($book->image_url)
             <div class="detail-media">
                 <img
-                    src="{{ asset('storage/' . $book->image) }}"
+                    src="{{ $book->image_url }}"
                     alt="{{ $book->title }}"
                     class="detail-image"
                 >
@@ -59,6 +59,26 @@
     <div class="detail-actions">
         <a href="{{ route('books.edit', $book) }}" class="btn btn-primary">Sửa</a>
         <a href="{{ route('books.index') }}" class="btn btn-secondary">Quay lại</a>
+
+        <button
+            type="submit"
+            form="delete-book-form"
+            class="btn btn-danger"
+            onclick="return confirm('Bạn có chắc chắn muốn xóa cuốn sách này? Thao tác này không thể hoàn tác!')"
+        >
+            Xóa
+        </button>
     </div>
 </div>
+
+<form
+    id="delete-book-form"
+    action="{{ route('books.destroy', $book) }}"
+    method="POST"
+    style="display: none;"
+>
+    @csrf
+    @method('DELETE')
+</form>
+
 @endsection
