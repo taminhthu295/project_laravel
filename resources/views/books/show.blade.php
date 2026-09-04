@@ -24,7 +24,7 @@
                 <dd>{{ $book->author }}</dd>
 
                 <dt>Thể loại</dt>
-                <dd>{{ $book->category->name ?? 'N/A' }}</dd>
+                <dd>{{ $book->category->name ?? 'Chưa phân loại' }}</dd>
 
                 <dt>Năm xuất bản</dt>
                 <dd>{{ $book->published_year ?: '—' }}</dd>

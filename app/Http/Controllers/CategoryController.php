@@ -24,7 +24,9 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:categories,name',
+        ], [
+            'name.unique' => 'Tên thể loại này đã tồn tại.',
         ]);
 
         Category::create($request->only('name'));
@@ -43,7 +45,9 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+        ], [
+            'name.unique' => 'Tên thể loại này đã tồn tại.',
         ]);
 
         $category->update($request->only('name'));

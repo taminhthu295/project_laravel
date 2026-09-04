@@ -23,7 +23,7 @@ class BookController extends Controller
             $query->where('status', $request->status);
         }
 
-        $books = $query->latest()->get();
+        $books = $query->latest()->paginate(10)->withQueryString();
         $categories = Category::orderBy('name')->get();
 
         return view('books.index', compact('books', 'categories'));
@@ -40,9 +40,9 @@ class BookController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
-            'published_year' => 'nullable|digits:4|integer',
+            'published_year' => 'nullable|integer|min:1|max:' . (date('Y') + 1),
             'status' => 'required|in:Want to Read,Reading,Read',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -61,6 +61,7 @@ class BookController extends Controller
 
     public function show(Book $book)
     {
+        $book->load('category');
         return view('books.show', compact('book'));
     }
 
@@ -75,20 +76,25 @@ class BookController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
-            'published_year' => 'nullable|digits:4|integer',
+            'published_year' => 'nullable|integer|min:1|max:' . (date('Y') + 1),
             'status' => 'required|in:Want to Read,Reading,Read',
             'image' => 'nullable|image|max:2048',
         ]);
 
-        $data = $request->except('image');
+        $data = $request->except(['image', 'remove_image']);
 
         if ($request->hasFile('image')) {
             if ($book->image) {
                 Storage::disk('public')->delete($book->image);
             }
             $data['image'] = $request->file('image')->store('books', 'public');
+        } elseif ($request->boolean('remove_image')) {
+            if ($book->image) {
+                Storage::disk('public')->delete($book->image);
+            }
+            $data['image'] = null;
         }
 
         $book->update($data);

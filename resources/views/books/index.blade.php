@@ -125,7 +125,7 @@
                             STT
                         ========================= --}}
                         <td data-label="STT">
-                            {{ $loop->iteration }}
+                            {{ $books->firstItem() ? ($books->firstItem() + $loop->index) : $loop->iteration }}
                         </td>
 
 
@@ -156,7 +156,7 @@
                             CATEGORY
                         ========================= --}}
                         <td data-label="Thể loại">
-                            {{ $book->category->name ?? 'N/A' }}
+                            {{ $book->category->name ?? 'Chưa phân loại' }}
                         </td>
 
 
@@ -274,5 +274,7 @@
     </div>
 
 </div>
+
+{{ $books->links('pagination.custom') }}
 
 @endsection

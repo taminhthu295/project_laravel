@@ -57,7 +57,7 @@
             <label for="category_id">Thể loại</label>
 
             <select id="category_id" name="category_id">
-                <option value="">-- Chọn thể loại --</option>
+                <option value="">-- Chọn thể loại (Tùy chọn) --</option>
 
                 @foreach($categories as $category)
                     <option
@@ -99,6 +99,8 @@
                 type="number"
                 id="published_year"
                 name="published_year"
+                min="1"
+                max="{{ date('Y') + 1 }}"
                 value="{{ old('published_year', $book->published_year) }}"
                 placeholder="Ví dụ: 2024"
             >
@@ -167,6 +169,12 @@
                             src="{{ asset('storage/' . $book->image) }}"
                             alt="{{ $book->title }}"
                         >
+                        <div class="image-remove-option" style="margin-top: 10px;">
+                            <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--rust);">
+                                <input type="checkbox" name="remove_image" value="1" id="remove_image">
+                                <span>Xóa ảnh bìa hiện tại</span>
+                            </label>
+                        </div>
                     @else
                         <img
                             id="image-preview"

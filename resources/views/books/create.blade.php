@@ -56,7 +56,7 @@
             <label for="category_id">Thể loại</label>
 
             <select id="category_id" name="category_id">
-                <option value="">-- Chọn thể loại --</option>
+                <option value="">-- Chọn thể loại (Tùy chọn) --</option>
 
                 @foreach($categories as $category)
                     <option
@@ -98,6 +98,8 @@
                 type="number"
                 id="published_year"
                 name="published_year"
+                min="1"
+                max="{{ date('Y') + 1 }}"
                 value="{{ old('published_year') }}"
                 placeholder="Ví dụ: 2024"
             >
