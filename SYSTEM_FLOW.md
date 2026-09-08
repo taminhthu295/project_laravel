@@ -214,3 +214,58 @@ erDiagram
 | `GET` | `/categories/{category}/edit` | `categories.edit` | `CategoryController@edit` | Giao diện sửa thể loại |
 | `PUT/PATCH` | `/categories/{category}` | `categories.update` | `CategoryController@update` | Cập nhật tên thể loại |
 | `DELETE` | `/categories/{category}` | `categories.destroy` | `CategoryController@destroy` | Xóa thể loại |
+
+---
+
+## 7. Tìm hiểu quy trình Deploy (Deploy Flow)
+
+> Phần này mô tả lý thuyết luồng xử lý khi ứng dụng được triển khai lên môi trường production thực tế (chưa deploy thật, chỉ tìm hiểu và mô tả).
+
+### 7.1. Sơ đồ luồng tổng quát
+
+```mermaid
+flowchart LR
+    User([Người dùng]) -->|1. Nhập domain vào trình duyệt| Domain[example.com]
+    Domain -->|2. Phân giải tên miền| DNS[(DNS Server)]
+    DNS -->|3. Trả về IP của server| Domain
+    Domain -->|4. Gửi HTTP/HTTPS request tới IP| Nginx[Nginx - Web Server]
+    Nginx -->|5. Request PHP file .php| PHPFPM[PHP-FPM]
+    PHPFPM -->|6. Thực thi code| Laravel[Laravel Application]
+    Laravel -->|7. Query dữ liệu| MySQL[(MySQL Database)]
+    MySQL -->|8. Trả kết quả| Laravel
+    Laravel -->|9. Trả HTML/JSON| PHPFPM
+    PHPFPM -->|10. Trả response| Nginx
+    Nginx -->|11. Trả về trình duyệt| User
+```
+
+### 7.2. Giải thích từng bước
+
+| Bước | Thành phần | Vai trò |
+|---|---|---|
+| 1 | **Domain** | Người dùng gõ tên miền (ví dụ `mybooks.com`) thay vì nhớ địa chỉ IP |
+| 2-3 | **DNS Server** | Phân giải (resolve) tên miền thành địa chỉ IP thật của server đang host ứng dụng, trả IP đó về trình duyệt |
+| 4 | **Nginx (Web Server)** | Nhận request HTTP/HTTPS đầu tiên tại địa chỉ IP đó. Nginx đóng vai trò "gác cổng" — xử lý các file tĩnh (CSS, JS, ảnh) trực tiếp, còn file `.php` thì chuyển tiếp (proxy) sang PHP-FPM |
+| 5 | **Chuyển tiếp** | Nginx dùng giao thức FastCGI để gửi request sang PHP-FPM xử lý logic động |
+| 6 | **PHP-FPM** | (FastCGI Process Manager) — quản lý các tiến trình PHP, nhận request từ Nginx và thực thi code Laravel tương ứng (routing, controller...) |
+| 6 | **Laravel Application** | Nhận request đã qua PHP-FPM, chạy đúng luồng MVC nội bộ: Route → Controller → Model |
+| 7-8 | **MySQL Database** | Laravel (qua Eloquent) truy vấn hoặc ghi dữ liệu vào MySQL, trả kết quả về lại Laravel |
+| 9-10 | **Trả response** | Laravel render View (HTML) hoặc trả JSON, gửi ngược lại qua PHP-FPM → Nginx |
+| 11 | **Hiển thị** | Nginx trả response cuối cùng về trình duyệt người dùng, hoàn tất 1 vòng request-response |
+
+### 7.3. Vai trò cụ thể của từng thành phần trong hệ thống
+
+- **DNS**: chỉ tham gia đúng 1 lần khi bắt đầu kết nối (phân giải tên miền), không tham gia vào các bước xử lý dữ liệu sau đó.
+- **Nginx**: là lớp ngoài cùng tiếp nhận toàn bộ traffic, có thể xử lý luôn các asset tĩnh (`public/css/app.css`, ảnh bìa sách trong `public/storage`) mà không cần "làm phiền" tới PHP-FPM/Laravel, giúp giảm tải và tăng tốc độ phản hồi.
+- **PHP-FPM**: là cầu nối giữa Nginx (web server) và code PHP (Laravel) — Nginx bản thân không tự chạy được code PHP, cần PHP-FPM làm trung gian thực thi.
+- **Laravel**: xử lý toàn bộ logic nghiệp vụ — nhận request đã được định tuyến (`routes/web.php`), gọi đúng Controller (`BookController`, `CategoryController`), tương tác Model (Eloquent) để truy vấn MySQL.
+- **MySQL**: lưu trữ toàn bộ dữ liệu bền vững của hệ thống (bảng `categories`, `books`).
+
+### 7.4. Khác biệt so với môi trường local (Laragon) hiện tại
+
+| | Local (Laragon) | Production (thực tế) |
+|---|---|---|
+| Web server | Apache/Nginx tích hợp sẵn trong Laragon | Nginx cấu hình riêng trên server |
+| Domain | `localhost` / `project_laravel.test` | Tên miền thật đã trỏ DNS |
+| PHP | Chạy qua `php artisan serve` (built-in server) hoặc Apache module | PHP-FPM chạy như 1 service riêng, tối ưu cho tải cao |
+| Database | MySQL cài trong Laragon, chỉ máy local truy cập | MySQL server riêng (có thể cùng server hoặc server khác), có backup/bảo mật |
+| HTTPS | Không bắt buộc | Bắt buộc, dùng chứng chỉ SSL (Let's Encrypt...) |
