@@ -273,7 +273,7 @@ Sơ đồ cấu trúc bảng và quan hệ trong cơ sở dữ liệu:
 
 ```mermaid
 erDiagram
-    CATEGORIES ||--o{ BOOKS : "hasMany (1 - N)"}
+    CATEGORIES ||--o{ BOOKS : "hasMany (1 - N)"
     
     CATEGORIES {
         bigint id PK "Khóa chính, tự tăng"
