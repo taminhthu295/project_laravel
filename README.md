@@ -214,7 +214,8 @@ project_laravel/
 │   └── app/
 │       └── public/
 │           └── books/                      # Nơi lưu trữ các file ảnh bìa sách
-├── SYSTEM_FLOW.md                          # Tài liệu chi tiết System Flow hệ thống
+├── DEBUG_REPORT.md                         # Báo cáo chi tiết các lỗi đã xử lý & kiểm thử
+├── SYSTEM_FLOW.md                          # Tài liệu chi tiết System Flow & Deploy hệ thống
 └── README.md
 ```
 
