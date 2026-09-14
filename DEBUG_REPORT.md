@@ -15,8 +15,7 @@ Tài liệu này tổng hợp toàn bộ quá trình rà soát, phát hiện l�
    - [Cải tiến 1: Chống Trùng Lặp Tên Thể Loại (Unique Category Validation)](#cải-tiến-1-chống-trùng-lặp-tên-thể-loại-unique-category-validation)
    - [Cải tiến 2: Bổ Sung Tùy Chọn Gỡ Bỏ Ảnh Bìa Sách Cũ](#cải-tiến-2-bổ-sung-tùy-chọn-gỡ-bỏ-ảnh-bìa-sách-cũ)
    - [Cải tiến 3: Phân Trang (Pagination), Đánh Số STT Chuẩn & Khắc Phục N+1 Query](#cải-tiến-3-phân-trang-pagination-đánh-số-stt-chuẩn--khắc-phục-n1-query)
-4. [Lưu Ý Về File `UserController.php`](#4-lưu-ý-về-file-usercontrollerphp)
-5. [Checklist Kiểm Thử Hệ Thống (Verification Checklist)](#5-checklist-kiểm-thử-hệ-thống-verification-checklist)
+4. [Checklist Kiểm Thử Hệ Thống (Verification Checklist)](#4-checklist-kiểm-thử-hệ-thống-verification-checklist)
 
 ---
 
@@ -38,33 +37,41 @@ Tài liệu này tổng hợp toàn bộ quá trình rà soát, phát hiện l�
 
 ### BUG-1: Lỗi Ảnh Bìa Không Hiển Thị (Thiếu Storage Link)
 
-* **Hiện tượng:**
+* **Issue (Hiện tượng):**
   Khi người dùng tải ảnh bìa mới trong form thêm/sửa sách, file ảnh được lưu vào máy chủ nhưng trên trang chi tiết ([books/show.blade.php](resources/views/books/show.blade.php)) và form sửa ([books/edit.blade.php](resources/views/books/edit.blade.php)), ảnh bị vỡ (biểu tượng 404 Not Found).
-* **Nguyên nhân gốc rễ (Root Cause):**
+* **Nguyên nhân:**
   * Trong [BookController.php](app/Http/Controllers/BookController.php), ảnh được lưu vào disk `public` (`storage/app/public/books/`).
   * Trong view, hàm `asset('storage/' . $book->image)` trỏ tới đường dẫn tĩnh `public/storage/...`.
   * Thư mục symlink `public/storage` chưa từng được khởi tạo trong môi trường chạy (Laragon/Windows).
-* **Giải pháp đã thực hiện:**
+* **Cách điều tra:**
+  1. Mở DevTools trình duyệt (F12) ➔ Chuyển qua tab **Network**, thấy request tải ảnh trả về mã HTTP `404 Not Found`.
+  2. Kiểm tra thư mục máy chủ: file vật lý có tồn tại tại `storage/app/public/books/`.
+  3. Kiểm tra thư mục gốc `public/` thấy chưa có thư mục symlink `storage/` kết nối ra ngoài.
+* **Cách xử lý:**
   Khởi chạy lệnh Artisan để tạo symlink kết nối từ `storage/app/public` ra thư mục web công khai `public/storage`:
   ```bash
   php artisan storage:link
   ```
-* **Kết quả:** Symlink được tạo lập (`Test-Path public/storage` trả về `True`). Tất cả ảnh upload truy cập bình thường.
+* **Kết quả:** Symlink được tạo lập thành công. Tất cả ảnh upload truy cập và hiển thị bình thường trên mọi view.
 
 ---
 
 ### BUG-2: Lỗi Crash SQL Khi Nhập Năm Xuất Bản (Xung Đột Kiểu YEAR)
 
-* **Hiện tượng:**
+* **Issue (Hiện tượng):**
   Khi thêm một tác phẩm văn học cổ điển có năm xuất bản trước thế kỷ 20 (ví dụ: *Les Misérables* - 1862, *Pride and Prejudice* - 1813, hoặc các tác phẩm cổ đại), hệ thống ném ra ngoại lệ SQL nghiêm trọng:
   ```text
   SQLSTATE[22003]: Numeric value out of range: 1264 Out of range value for column 'published_year' at row 1
   ```
-* **Nguyên nhân gốc rễ (Root Cause):**
+* **Nguyên nhân:**
   * Migration ban đầu `create_books_table.php` định nghĩa: `$table->year('published_year')`.
   * Trong MySQL, kiểu dữ liệu `YEAR` **chỉ hỗ trợ giá trị từ 1901 đến 2155** (hoặc `0000`).
   * Validation trong `BookController` chỉ kiểm tra `'nullable|digits:4|integer'`, cho phép vượt qua với mọi số có 4 chữ số, dẫn đến việc MySQL từ chối ghi dữ liệu và sập trang.
-* **Giải pháp đã thực hiện:**
+* **Cách điều tra:**
+  1. Thử nhập một năm xuất bản hợp lệ trong lịch sử (1862) vào form thêm sách và submit.
+  2. Trang báo lỗi màu đỏ (Laravel Error Page); mở file log tại `storage/logs/laravel.log` phát hiện lỗi `SQLSTATE[22003]: Numeric value out of range: 1264`.
+  3. Kiểm tra định nghĩa cột trong database qua lệnh `DESCRIBE books;` ➔ Cột `published_year` có kiểu `year(4)`. Tra cứu tài liệu MySQL xác nhận giới hạn năm của kiểu `YEAR`.
+* **Cách xử lý:**
   1. Tạo và chạy migration [2026_09_04_090727_change_published_year_in_books_table.php](database/migrations/2026_09_04_090727_change_published_year_in_books_table.php):
      ```php
      Schema::table('books', function (Blueprint $table) {
@@ -82,13 +89,19 @@ Tài liệu này tổng hợp toàn bộ quá trình rà soát, phát hiện l�
 
 ### BUG-3: Rủi Ro Mất Dữ Liệu Sách & File Rác Khi Xóa Thể Loại (Cascade Delete)
 
-* **Hiện tượng & Rủi ro:**
+* **Issue (Hiện tượng):**
   * Khóa ngoại ban đầu được thiết lập `->onDelete('cascade')`.
   * Khi người dùng xóa một thể loại trong [CategoryController.php](app/Http/Controllers/CategoryController.php), **toàn bộ sách thuộc thể loại đó bị xóa sạch vĩnh viễn khỏi database**.
   * Quá trình xóa này do MySQL cascade tự động thực hiện, không qua `BookController::destroy()`, khiến toàn bộ file ảnh bìa vật lý của những cuốn sách bị xóa **vẫn nằm lại trên ổ đĩa**, gây rác bộ nhớ server.
-* **Quyết định thiết kế:**
-  Chuyển trường Thể loại (`category_id`) sang dạng **Tùy chọn (`nullable`)** với hành vi **`nullOnDelete()`**. Khi thể loại bị xóa, sách vẫn được giữ lại an toàn và tự động chuyển về thể loại *"Chưa phân loại"*.
-* **Giải pháp đã thực hiện:**
+* **Nguyên nhân:**
+  Ràng buộc khóa ngoại `category_id` trong migration cũ dùng `cascadeOnDelete()`, kết hợp với cột `category_id` không cho phép giá trị `NULL`.
+* **Cách điều tra:**
+  1. Tạo 1 thể loại "Công nghệ" và thêm 3 cuốn sách thuộc thể loại này (có đính kèm ảnh bìa).
+  2. Thực hiện xóa thể loại "Công nghệ" trên màn hình quản lý thể loại.
+  3. Kiểm tra bảng `books` trong MySQL: 3 cuốn sách đã biến mất hoàn toàn.
+  4. Kiểm tra thư mục `storage/app/public/books/`: các file ảnh bìa của 3 cuốn sách vẫn tồn tại, không được dọn dẹp.
+* **Cách xử lý:**
+  Chuyển trường Thể loại (`category_id`) sang dạng **Tùy chọn (`nullable`)** với hành vi **`nullOnDelete()`**. Khi thể loại bị xóa, sách vẫn được giữ lại an toàn và tự động chuyển về thể loại *"Chưa phân loại"*:
   1. Tạo và chạy migration [2026_09_04_091419_make_category_id_nullable_in_books_table.php](database/migrations/2026_09_04_091419_make_category_id_nullable_in_books_table.php):
      ```php
      Schema::table('books', function (Blueprint $table) {
@@ -104,17 +117,21 @@ Tài liệu này tổng hợp toàn bộ quá trình rà soát, phát hiện l�
   3. Cập nhật giao diện:
      * Dropdown chọn thể loại đổi option mặc định: `-- Chọn thể loại (Tùy chọn) --`.
      * Cột thể loại tại [books/index.blade.php](resources/views/books/index.blade.php) và [books/show.blade.php](resources/views/books/show.blade.php) hiển thị nhãn thân thiện: `Chưa phân loại` thay vì `N/A`.
-* **Kết quả:** Người dùng có thể thêm sách ngay cả khi chưa tạo thể loại; khi xóa danh mục, dữ liệu sách hoàn toàn được bảo toàn.
+* **Kết quả:** Người dùng có thể thêm sách ngay cả khi chưa tạo thể loại; khi xóa danh mục, dữ liệu sách hoàn toàn được bảo toàn và chuyển về "Chưa phân loại".
 
 ---
 
 ### BUG-4: Layout Bị Khuyết Thông Báo Lỗi (`session('error')`)
 
-* **Hiện tượng:**
+* **Issue (Hiện tượng):**
   Khi Controller điều hướng quay lại kèm thông báo thất bại: `redirect()->back()->with('error', 'Nội dung lỗi...')`, giao diện hoàn toàn không có phản hồi nào, người dùng không hiểu thao tác có thành công hay không.
-* **Nguyên nhân gốc rễ (Root Cause):**
-  Trong [layouts/app.blade.php](resources/views/layouts/app.blade.php), giao diện chỉ viết code kiểm tra `@if(session('success'))`.
-* **Giải pháp đã thực hiện:**
+* **Nguyên nhân:**
+  Trong [layouts/app.blade.php](resources/views/layouts/app.blade.php), giao diện chỉ viết code kiểm tra `@if(session('success'))`, chưa có khối bắt `@if(session('error'))`.
+* **Cách điều tra:**
+  1. Thử kích hoạt một luồng trả về lỗi với `with('error', '...')` trong Controller.
+  2. Quan sát màn hình sau khi redirect: trang tải lại bình thường nhưng thanh thông báo hoàn toàn trống.
+  3. Kiểm tra mã nguồn Blade tại `resources/views/layouts/app.blade.php` ➔ Phát hiện thiếu khối directive bắt `session('error')`.
+* **Cách xử lý:**
   1. Bổ sung container hiển thị `session('error')` trong [layouts/app.blade.php](resources/views/layouts/app.blade.php):
      ```blade
      @if(session('success'))
@@ -248,15 +265,7 @@ Tài liệu này tổng hợp toàn bộ quá trình rà soát, phát hiện l�
 
 ---
 
-## 4. Lưu Ý Về File `UserController.php`
-
-* **Trạng thái hiện tại:** File [app/Http/Controllers/UserController.php](app/Http/Controllers/UserController.php) hiện là một controller rỗng (chỉ gồm các method stub `index`, `create`, `store`... sinh tự động từ Artisan).
-* **Ảnh hưởng:** File này **không gây ra bất kỳ lỗi cú pháp hay lỗi vận hành nào** vì chưa được đăng ký route trong [routes/web.php](routes/web.php).
-* **Khuyến nghị tương lai:** Nếu dự án cần phát triển thêm chức năng Authentication (Đăng nhập / Đăng ký) hoặc Quản lý thành viên (User Management), controller này sẽ được hiện thực hóa kèm theo middleware bảo vệ các route sách.
-
----
-
-## 5. Checklist Kiểm Thử Hệ Thống (Verification Checklist)
+## 4. Checklist Kiểm Thử Hệ Thống (Verification Checklist)
 
 | STT | Kịch bản kiểm thử | Kết quả mong đợi | Trạng thái |
 | :---: | :--- | :--- | :---: |

@@ -27,6 +27,36 @@ graph TD
     View -->|Render HTML + CSS| User
 ```
 
+### 2.1. Minh họa luồng xử lý qua ví dụ "Thêm sách mới" (Add Book Flow)
+
+> **Yêu cầu chuẩn:** `User → Form → Route → Controller → Model → Database → Response → View`
+
+```mermaid
+flowchart LR
+    User([1. User]) -->|Nhập dữ liệu & Submit| Form[2. Form View]
+    Form -->|Gửi POST request| Route[3. Route: web.php]
+    Route -->|Điều hướng action| Controller[4. BookController]
+    Controller -->|Khởi tạo & ORM| Model[5. Book Model]
+    Model -->|Thực thi INSERT SQL| DB[(6. MySQL DB)]
+    DB -->|Xác nhận ghi thành công| Controller
+    Controller -->|Chuyển hướng kèm flash msg| Response[7. HTTP Response 302]
+    Response -->|Render dữ liệu mới| View[8. View: books.index]
+    View -->|Hiển thị kết quả trực quan| User
+```
+
+#### Bảng giải thích chi tiết vai trò của từng thành phần:
+
+| STT | Thành phần | Tên file / Vị trí cụ thể | Vai trò & Trách nhiệm trong hệ thống |
+| :---: | :--- | :--- | :--- |
+| **1** | **User (Người dùng)** | Trình duyệt Client | Người dùng tương tác: nhập tiêu đề, tác giả, chọn thể loại, chọn file ảnh bìa và bấm nút *"Lưu sách"*. |
+| **2** | **Form (View)** | [`resources/views/books/create.blade.php`](file:///c:/laragon/www/project_laravel/resources/views/books/create.blade.php) | Hiển thị giao diện nhập liệu, hỗ trợ xem trước ảnh (instant preview qua JS), đóng gói toàn bộ input vào `multipart/form-data`. |
+| **3** | **Route** | [`routes/web.php`](file:///c:/laragon/www/project_laravel/routes/web.php) (`POST /books`) | Lắng nghe HTTP Request, kiểm tra URI & Method khớp với quy tắc định tuyến, chuyển tiếp request sang Controller xử lý. |
+| **4** | **Controller** | [`BookController@store`](file:///c:/laragon/www/project_laravel/app/Http/Controllers/BookController.php) | Tiếp nhận request, thực thi validate dữ liệu, xử lý lưu file ảnh vào `storage/app/public/books`, gọi Model để tạo bản ghi. |
+| **5** | **Model** | [`App\Models\Book`](file:///c:/laragon/www/project_laravel/app/Models/Book.php) | Đại diện cho thực thể dữ liệu, kiểm soát Mass Assignment (`$fillable`), định nghĩa mối quan hệ với `Category`. |
+| **6** | **Database** | MySQL (bảng `books`) | Thực thi câu lệnh `INSERT INTO books (...) VALUES (...)` và lưu dữ liệu an toàn, bền vững trên ổ đĩa vật lý. |
+| **7** | **Response** | `redirect()->route('books.index')` | Tạo phản hồi HTTP Redirect (302) đính kèm Flash Message thông báo thành công (`with('success', '...')`). |
+| **8** | **View** | [`resources/views/books/index.blade.php`](file:///c:/laragon/www/project_laravel/resources/views/books/index.blade.php) | Nhận dữ liệu danh sách mới từ Controller, render giao diện HTML/CSS chứa cuốn sách vừa thêm kèm banner thông báo thành công. |
+
 ---
 
 ## 3. Sơ đồ luồng hoạt động tổng thể (Overall System Flow)
