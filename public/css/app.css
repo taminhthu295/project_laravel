@@ -61,12 +61,13 @@ a:hover {
 .site-header {
     border-bottom: 1px solid var(--line);
     background: var(--surface);
+    box-shadow: 0 2px 10px rgba(31, 51, 43, 0.04);
 }
 
 .site-header__inner {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 20px 28px;
+    padding: 18px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -76,32 +77,55 @@ a:hover {
 .site-header__title {
     font-family: 'Lora', Georgia, serif;
     font-style: italic;
-    font-size: 23px;
+    font-size: 24px;
     font-weight: 600;
     color: var(--ink);
     white-space: nowrap;
+    text-decoration: none;
+    transition: color .2s ease;
+}
+
+.site-header__title:hover {
+    color: var(--gold);
+    text-decoration: none;
 }
 
 .site-header__nav {
     display: flex;
     align-items: center;
+    gap: 12px;
 }
 
 .site-header__nav a {
     margin-left: 0;
-    padding: 3px 18px;
-    color: var(--ink-soft);
-    font-size: 14px;
-    font-weight: 500;
+    padding: 8px 20px;
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all .2s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
 .site-header__nav a:hover {
-    color: var(--gold);
+    background: var(--paper);
+    color: var(--ink);
+    border-color: var(--line);
     text-decoration: none;
 }
 
-.site-header__nav a+a {
-    border-left: 1px solid var(--line);
+.site-header__nav a.active {
+    background: var(--ink);
+    color: var(--surface);
+    border-color: var(--ink);
+}
+
+.site-header__nav a.active:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
 }
 
 .container {
@@ -938,4 +962,111 @@ tbody tr:hover {
         align-items: center;
         text-align: center;
     }
+}
+
+/* ---------- Home ---------- */
+.hero {
+  text-align: center;
+  padding: 20px 0 40px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 32px;
+}
+.hero h1 { font-size: 28px; }
+.hero__tagline {
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: 480px;
+  margin: 0 auto 24px;
+}
+.hero__actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 44px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 20px;
+  text-align: center;
+}
+.stat-card__number {
+  font-family: 'Lora', serif;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.stat-card__label {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+.section-heading a { font-size: 13px; }
+
+.empty-note {
+  color: var(--ink-soft);
+  padding: 24px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 16px;
+  color: var(--ink);
+}
+.recent-item:hover {
+  border-color: var(--gold);
+  text-decoration: none;
+}
+.recent-item__thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  font-size: 18px;
+}
+.recent-item__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.recent-item__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.recent-item__meta { font-size: 12px; color: var(--ink-soft); }
+
+@media (max-width: 640px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .recent-item { flex-wrap: wrap; }
 }

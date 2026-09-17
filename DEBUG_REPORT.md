@@ -54,6 +54,25 @@ Tài liệu này tổng hợp toàn bộ quá trình rà soát, phát hiện l�
   ```
 * **Kết quả:** Symlink được tạo lập thành công. Tất cả ảnh upload truy cập và hiển thị bình thường trên mọi view.
 
+### BUG-1A: Ảnh Sách Trên Trang Home Không Hiển Thị Do Dùng Đường Dẫn Sai
+
+* **Hiện tượng:**
+  Trên trang chủ [resources/views/home.blade.php](resources/views/home.blade.php), các item sách hiển thị ô trống hoặc hình ảnh vỡ dù dữ liệu `image` có tồn tại.
+* **Nguyên nhân gốc rễ (Root Cause):**
+  * Trang home đang render ảnh bằng `asset('storage/' . $book->image)` thay vì dùng accessor chuẩn `image_url` của model.
+  * Với dữ liệu ảnh từ URL ngoài internet, cách nối chuỗi này không hợp lệ; nếu giá trị lưu trong DB đã là URL tuyệt đối thì `asset('storage/https://...')` sinh ra đường dẫn sai.
+  * Đồng thời, ảnh upload local cũng phụ thuộc vào điều kiện đường dẫn `public/storage` đã đúng và vững chắc.
+* **Giải pháp đã thực hiện:**
+  1. Cập nhật view [resources/views/home.blade.php](resources/views/home.blade.php) để dùng `@if($book->image_url)` và `src="{{ $book->image_url }}"`.
+  2. Đảm bảo model [app/Models/Book.php](app/Models/Book.php) đã có accessor `getImageUrlAttribute()` xử lý cả file nội bộ và URL ngoài.
+  3. Xoá cache Blade/Config sau khi sửa bằng lệnh:
+     ```bash
+     php artisan view:clear
+     php artisan config:clear
+     ```
+* **Kết quả:** Ảnh trên trang home hiển thị đúng cả ảnh upload nội bộ lẫn ảnh từ URL bên ngoài, không còn mất dạng hình ảnh trên card sách mới gần đây.
+
+
 ---
 
 ### BUG-2: Lỗi Crash SQL Khi Nhập Năm Xuất Bản (Xung Đột Kiểu YEAR)
