@@ -203,6 +203,7 @@
 
                                 {{-- XÓA --}}
                                 <form
+                                    id="delete-book-{{ $book->id }}"
                                     action="{{ route('books.destroy', $book) }}"
                                     method="POST"
                                 >
@@ -212,11 +213,11 @@
                                     @method('DELETE')
 
                                     <button
-                                        type="submit"
+                                        type="button"
                                         class="icon-button icon-button--danger"
                                         data-tooltip="Xóa"
                                         aria-label="Xóa"
-                                        onclick="return confirm('Xóa sách này?')"
+                                        onclick="openConfirmModal('Bạn có chắc muốn xóa cuốn sách &quot;{{ addslashes($book->title) }}&quot;?', 'delete-book-{{ $book->id }}', 'Xóa sách')"
                                     >
 
                                         <svg

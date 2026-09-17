@@ -4,7 +4,7 @@
 @section('content')
 <div class="hero">
     <h1>Thư viện sách của bạn</h1>
-    <p class="hero__tagline">Ghi lại hành trình đọc — từ những cuốn đang chờ, đến những cuốn đã gấp lại trang cuối.</p>
+    <p class="hero__tagline"><em>“{{ $quote }}”</em></p>
     <div class="hero__actions">
         <a href="{{ route('books.create') }}" class="btn btn-primary">+ Thêm sách</a>
         <a href="{{ route('categories.create') }}" class="btn btn-primary">+ Thêm thể loại</a>
@@ -12,27 +12,26 @@
 </div>
 
 <div class="stats-grid">
-    <div class="stat-card">
+    <a href="{{ route('books.index') }}" class="stat-card" title="Xem tất cả sách">
         <div class="stat-card__number">{{ $totalBooks }}</div>
         <div class="stat-card__label">Tổng số sách</div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="{{ route('books.index', ['status' => 'Want to Read']) }}" class="stat-card" title="Xem sách muốn đọc">
         <div class="stat-card__number">{{ $wantCount }}</div>
         <div class="stat-card__label">Muốn đọc</div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="{{ route('books.index', ['status' => 'Reading']) }}" class="stat-card" title="Xem sách đang đọc">
         <div class="stat-card__number">{{ $readingCount }}</div>
         <div class="stat-card__label">Đang đọc</div>
-    </div>
-    <div class="stat-card">
+    </a>
+    <a href="{{ route('books.index', ['status' => 'Read']) }}" class="stat-card" title="Xem sách đã đọc">
         <div class="stat-card__number">{{ $readCount }}</div>
         <div class="stat-card__label">Đã đọc</div>
-    </div>
+    </a>
 </div>
 
 <div class="section-heading">
     <h2>Mới thêm gần đây</h2>
-    <a href="{{ route('books.index') }}">Xem tất cả sách →</a>
 </div>
 
 @if($recentBooks->isEmpty())

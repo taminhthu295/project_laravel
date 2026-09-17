@@ -15,8 +15,10 @@ class HomeController extends Controller
 
         $recentBooks = Book::with('category')->latest()->take(5)->get();
 
+        $quote = collect(config('quotes.reading'))->random();
+
         return view('home', compact(
-            'totalBooks', 'wantCount', 'readingCount', 'readCount', 'recentBooks'
+            'totalBooks', 'wantCount', 'readingCount', 'readCount', 'recentBooks', 'quote'
         ));
     }
 }

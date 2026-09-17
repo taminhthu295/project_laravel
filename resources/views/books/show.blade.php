@@ -61,10 +61,9 @@
         <a href="{{ route('books.index') }}" class="btn btn-secondary">Quay lại</a>
 
         <button
-            type="submit"
-            form="delete-book-form"
+            type="button"
             class="btn btn-danger"
-            onclick="return confirm('Bạn có chắc chắn muốn xóa cuốn sách này? Thao tác này không thể hoàn tác!')"
+            onclick="openConfirmModal('Bạn có chắc chắn muốn xóa cuốn sách &quot;{{ addslashes($book->title) }}&quot;? Thao tác này không thể hoàn tác!', 'delete-book-form', 'Xác nhận xóa sách')"
         >
             Xóa
         </button>

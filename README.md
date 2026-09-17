@@ -22,20 +22,32 @@
 
 ## Project Overview
 Hệ thống Quản lý Sách là một ứng dụng Web MVC tinh gọn giúp người dùng quản lý bộ sưu tập sách cá nhân hoặc thư viện nhỏ:
-- Theo dõi tiến độ đọc sách (`Want to Read`, `Reading`, `Read`).
-- Phân loại sách theo các thể loại chuyên biệt.
-- Tải lên, hiển thị và thay đổi ảnh bìa sách với tính năng xem trước tức thì (instant preview).
-- Tra cứu nhanh chóng nhờ bộ lọc kết hợp (tên sách, thể loại, trạng thái).
+- **Trang chủ Dashboard**: Thống kê trực quan số lượng sách theo từng trạng thái đọc (`Muốn đọc`, `Đang đọc`, `Đã đọc`) với các thẻ số liên kết bộ lọc thông minh; theo dõi 5 cuốn sách mới thêm gần đây.
+- **Theo dõi tiến độ đọc**: Quản lý trạng thái đọc linh hoạt (`Want to Read`, `Reading`, `Read`).
+- **Phân loại sách**: Phân chia theo các danh mục thể loại chuyên biệt.
+- **Quản lý Media**: Tải lên, hiển thị và thay đổi ảnh bìa sách với tính năng xem trước tức thì (instant preview).
+- **Tra cứu & Lọc đa điều kiện**: Tìm kiếm nhanh chóng theo tên sách, thể loại và trạng thái.
+- **Trải nghiệm UI/UX cao cấp**: Hệ thống Toast Pop-up thông báo tự động ẩn sau 4s, Modal xác nhận xóa tùy chỉnh với hiệu ứng mờ nền, thanh điều hướng Header tab nổi bật và Favicon sách mở 📖.
 
 ---
 
 ## Features
 
-### 1. Quản lý Sách (Book Management)
+### 1. Trang chủ & Bảng điều khiển (Home Dashboard)
+- **Thống kê tổng quan thông minh (Interactive Stats Cards)**:
+  - Tổng số sách, số lượng sách *Muốn đọc*, *Đang đọc* và *Đã đọc*.
+  - **Liên kết lọc trực tiếp**: Bấm vào bất kỳ thẻ số thống kê nào sẽ chuyển hướng ngay đến danh sách sách đã được lọc tự động theo trạng thái tương ứng.
+  - Hiệu ứng hover thẻ số nổi và đổi màu tinh tế.
+- **Lối tắt thao tác nhanh (Quick Action Shortcuts)**:
+  - Nút `+ Thêm sách` và `+ Thêm thể loại` đồng bộ phong cách, giúp tạo nhanh dữ liệu ngay từ trang chủ.
+- **Danh sách "Mới thêm gần đây" (Recent Books)**:
+  - Hiển thị 5 cuốn sách mới nhất kèm ảnh bìa, thể loại và trạng thái đọc; bấm vào để xem chi tiết cuốn sách ngay lập tức.
+
+### 2. Quản lý Sách (Book Management)
 - **Hiển thị danh sách**:
   - Cột STT tự động đánh số thứ tự tuần tự theo số lượng hiển thị trên trang (`$loop->iteration`).
   - Hiển thị tên sách, tác giả, thể loại, trạng thái đọc.
-  - Thao tác nhanh: Chỉnh sửa và Xóa (kèm hộp thoại xác nhận).
+  - Thao tác nhanh: Chỉnh sửa và Xóa (kèm **Custom Confirm Modal** giao diện đồng bộ).
 - **Tìm kiếm & Bộ lọc linh hoạt**:
   - Tìm kiếm sách theo từ khóa tên sách.
   - Lọc sách theo danh mục Thể loại.
@@ -53,12 +65,12 @@ Hệ thống Quản lý Sách là một ứng dụng Web MVC tinh gọn giúp ng
   - Cho phép cập nhật tất cả thông tin sách.
   - Hiển thị ảnh hiện tại và cho phép tải lên ảnh mới thay thế (tự động dọn dẹp file cũ trên server).
 - **Xóa sách**:
-  - Xóa bản ghi trong database đồng thời xóa file ảnh vật lý khỏi bộ nhớ lưu trữ `storage`.
+  - Mở hộp thoại xác nhận xóa tùy chỉnh (Custom Confirm Modal), khi đồng ý sẽ xóa bản ghi trong database đồng thời dọn dẹp file ảnh vật lý khỏi `storage`.
 
-### 2. Quản lý Thể loại (Category Management)
+### 3. Quản lý Thể loại (Category Management)
 - Danh sách thể loại cùng số lượng sách thuộc thể loại đó (`books_count`).
 - **Liên kết bộ lọc nhanh**: Nhấp trực tiếp vào con số trong cột "Số lượng sách" sẽ dẫn ngay sang trang danh sách sách đã được lọc sẵn theo thể loại tương ứng.
-- Thêm mới, chỉnh sửa tên thể loại và xóa thể loại.
+- Thêm mới, chỉnh sửa tên thể loại và xóa thể loại (kèm hộp thoại xác nhận xóa).
 
 ---
 
@@ -169,6 +181,7 @@ php artisan storage:link
    - Truy cập trực tiếp qua tên miền ảo đã cấu hình (ví dụ: `http://project_laravel.test`).
 
 3. **Truy cập các chức năng chính**:
+   - Trang chủ Dashboard: `http://127.0.0.1:8000/`
    - Danh sách sách: `http://127.0.0.1:8000/books`
    - Danh sách thể loại: `http://127.0.0.1:8000/categories`
 
@@ -181,6 +194,7 @@ project_laravel/
 ├── app/
 │   ├── Http/
 │   │   └── Controllers/
+│   │       ├── HomeController.php          # Xử lý logic Trang chủ Dashboard & thống kê sách
 │   │       ├── BookController.php          # Xử lý logic CRUD sách, lọc & upload ảnh
 │   │       └── CategoryController.php      # Xử lý logic CRUD danh mục thể loại
 │   └── Models/
@@ -190,15 +204,19 @@ project_laravel/
 │   └── migrations/
 │       ├── 2026_08_21_104025_create_categories_table.php
 │       ├── 2026_08_21_104026_create_books_table.php
-│       └── 2026_09_02_151753_add_image_to_books_table.php
+│       ├── 2026_09_02_151753_add_image_to_books_table.php
+│       ├── 2026_09_04_090727_change_published_year_in_books_table.php
+│       ├── 2026_09_04_091419_make_category_id_nullable_in_books_table.php
+│       └── 2026_09_04_101130_change_image_column_in_books_table.php
 ├── public/
 │   ├── css/
-│   │   └── app.css                         # Toàn bộ CSS giao diện, responsive & component
+│   │   └── app.css                         # Toàn bộ CSS giao diện, responsive, Toast & Confirm Modal
 │   └── storage/                            # Symbolic link trỏ tới storage/app/public
 ├── resources/
 │   └── views/
 │       ├── layouts/
-│       │   └── app.blade.php               # Layout khung chính (header, nav, container)
+│       │   └── app.blade.php               # Layout chính (Header ribbon, Toast Popup, Confirm Modal)
+│       ├── home.blade.php                  # Trang chủ: Hero actions, thẻ thống kê tương tác, sách mới
 │       ├── books/
 │       │   ├── index.blade.php             # Danh sách sách, thanh filter & bảng STT
 │       │   ├── create.blade.php            # Form tạo sách mới kèm preview ảnh
@@ -209,7 +227,7 @@ project_laravel/
 │           ├── create.blade.php            # Form thêm thể loại
 │           └── edit.blade.php              # Form sửa thể loại
 ├── routes/
-│   └── web.php                             # Định tuyến Resource cho books và categories
+│   └── web.php                             # Định tuyến Trang chủ, Resource Books & Categories
 ├── storage/
 │   └── app/
 │       └── public/
@@ -227,18 +245,26 @@ Quy trình hoạt động giữa người dùng, controller và dữ liệu:
 
 ```mermaid
 flowchart TD
-    User([Người dùng]) -->|Truy cập| Nav{Thanh điều hướng}
+    User([Người dùng]) -->|Truy cập /| Home[Trang chủ Home Dashboard]
+    Home -->|Thẻ số thống kê| FilterBooks[Danh sách Sách có filter Status tương ứng]
+    Home -->|Sách mới thêm| ShowBook[Xem Chi Tiết Sách]
+    Home -->|Click '+ Thêm sách'| CreateBook[Form Thêm Sách]
+    Home -->|Click '+ Thêm thể loại'| CreateCat[Form Thêm Thể Loại]
+
+    User -->|Thanh điều hướng Nav| Nav{Header Ribbon}
+    Nav -->|/books| BookList[Danh sách Sách]
+    Nav -->|/categories| CatList[Danh sách Thể Loại]
+    Nav -->|Logo Thư viện sách| Home
     
     %% Module Sách
-    Nav -->|/books| BookList[Danh sách Sách]
     BookList -->|Bộ lọc| Filter[Tìm kiếm: Tên, Thể loại, Trạng thái]
     Filter --> BookList
     
-    BookList -->|Click 'Thêm sách'| CreateBook[Form Thêm Sách]
+    BookList -->|Click 'Thêm sách'| CreateBook
     CreateBook -->|Upload ảnh + Lưu| StoreBook[Xác thực, Lưu File & DB]
     StoreBook --> BookList
     
-    BookList -->|Click 'Tên sách'| ShowBook[Xem Chi Tiết Sách]
+    BookList -->|Click 'Tên sách'| ShowBook
     ShowBook -->|Có ảnh| Layout2Col[Layout 2 cột: Info Trái - Ảnh Phải]
     ShowBook -->|Không ảnh| Layout1Col[Layout 1 cột chuẩn]
     
@@ -246,12 +272,12 @@ flowchart TD
     EditBook -->|Thay ảnh mới + Cập nhật| UpdateBook[Xóa ảnh cũ, Lưu ảnh mới & DB]
     UpdateBook --> BookList
     
-    BookList -->|Click 'Xóa'| DeleteBook[Xóa Sách & File ảnh vật lý]
+    BookList -->|Click 'Xóa'| ConfirmModal[Modal Xác nhận Xóa]
+    ConfirmModal -->|Xác nhận| DeleteBook[Xóa Sách & File ảnh vật lý]
     DeleteBook --> BookList
 
     %% Module Thể loại
-    Nav -->|/categories| CatList[Danh sách Thể Loại]
-    CatList -->|Click 'Thêm thể loại'| CreateCat[Form Thêm Thể Loại]
+    CatList -->|Click 'Thêm thể loại'| CreateCat
     CreateCat -->|Lưu| StoreCat[Lưu DB]
     StoreCat --> CatList
     
@@ -262,7 +288,8 @@ flowchart TD
     EditCat -->|Cập nhật| UpdateCat[Lưu DB]
     UpdateCat --> CatList
     
-    CatList -->|Click 'Xóa'| DeleteCat[Xóa Thể Loại]
+    CatList -->|Click 'Xóa'| ConfirmModalCat[Modal Xác nhận Xóa]
+    ConfirmModalCat -->|Xác nhận| DeleteCat[Xóa Thể Loại]
     DeleteCat --> CatList
 ```
 

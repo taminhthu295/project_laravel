@@ -6,7 +6,8 @@ Tài liệu mô tả chi tiết kiến trúc, luồng hoạt động (System Flo
 
 ## 1. Tổng quan hệ thống (System Overview)
 
-Hệ thống cung cấp giải pháp quản lý sách cá nhân/thư viện với 2 module cốt lõi:
+Hệ thống cung cấp giải pháp quản lý sách cá nhân/thư viện với 3 module cốt lõi:
+- **Trang chủ / Bảng điều khiển (`Home Dashboard`)**: Thống kê số lượng sách theo từng trạng thái đọc (`Muốn đọc`, `Đang đọc`, `Đã đọc`), hỗ trợ click trực tiếp vào thẻ số để chuyển hướng sang danh sách sách đã lọc tự động; hiển thị 5 cuốn sách mới thêm gần đây; cung cấp các lối tắt thêm sách và thêm thể loại nhanh.
 - **Quản lý Thể loại sách (`Category Management`)**: Phân loại sách theo danh mục, hiển thị số lượng sách theo thể loại và điều hướng nhanh sang danh sách đã lọc.
 - **Quản lý Sách (`Book Management`)**: Quản lý thông tin sách, tác giả, năm xuất bản, trạng thái đọc (`Want to Read`, `Reading`, `Read`), tải lên và xem trước ảnh bìa sách, tìm kiếm và lọc đa điều kiện.
 
@@ -19,7 +20,7 @@ Hệ thống cung cấp giải pháp quản lý sách cá nhân/thư viện vớ
 ```mermaid
 graph TD
     User([Người dùng / Trình duyệt]) -->|Gửi HTTP Request| Route[Routes: web.php]
-    Route -->|Điều hướng| Controller[Controller: BookController / CategoryController]
+    Route -->|Điều hướng| Controller[Controller: HomeController / BookController / CategoryController]
     Controller -->|Truy vấn / Thao tác dữ liệu| Model[Eloquent Model: Book / Category]
     Model <-->|Đọc / Ghi| DB[(Cơ sở dữ liệu: MySQL/SQLite)]
     Controller -->|Lưu trữ / Xóa file| Storage[(Storage: storage/app/public/books)]
@@ -55,7 +56,7 @@ flowchart LR
 | **5** | **Model** | [`App\Models\Book`](file:///c:/laragon/www/project_laravel/app/Models/Book.php) | Đại diện cho thực thể dữ liệu, kiểm soát Mass Assignment (`$fillable`), định nghĩa mối quan hệ với `Category`. |
 | **6** | **Database** | MySQL (bảng `books`) | Thực thi câu lệnh `INSERT INTO books (...) VALUES (...)` và lưu dữ liệu an toàn, bền vững trên ổ đĩa vật lý. |
 | **7** | **Response** | `redirect()->route('books.index')` | Tạo phản hồi HTTP Redirect (302) đính kèm Flash Message thông báo thành công (`with('success', '...')`). |
-| **8** | **View** | [`resources/views/books/index.blade.php`](file:///c:/laragon/www/project_laravel/resources/views/books/index.blade.php) | Nhận dữ liệu danh sách mới từ Controller, render giao diện HTML/CSS chứa cuốn sách vừa thêm kèm banner thông báo thành công. |
+| **8** | **View** | [`resources/views/books/index.blade.php`](file:///c:/laragon/www/project_laravel/resources/views/books/index.blade.php) | Nhận dữ liệu danh sách mới từ Controller, render giao diện HTML/CSS chứa cuốn sách vừa thêm kèm Toast popup thông báo thành công. |
 
 ---
 
@@ -63,17 +64,34 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Start([Truy cập hệ thống]) --> Nav{Thanh điều hướng}
+    Start([Truy cập hệ thống: /]) --> Home[Trang chủ Home Dashboard]
     
+    %% Module Trang chủ (Home)
+    Home -->|Click '+ Thêm sách'| BookCreate[Form Thêm Sách]
+    Home -->|Click '+ Thêm thể loại'| CatCreate[Form Thêm Thể Loại]
+    Home -->|Click thẻ 'Tổng số sách'| BookList[Trang Danh Sách Sách]
+    Home -->|Click thẻ 'Muốn đọc'| FilterWant[Danh sách /books?status=Want+to+Read]
+    Home -->|Click thẻ 'Đang đọc'| FilterReading[Danh sách /books?status=Reading]
+    Home -->|Click thẻ 'Đã đọc'| FilterRead[Danh sách /books?status=Read]
+    Home -->|Click item 'Mới thêm gần đây'| BookShow[Xem Chi Tiết Sách]
+    
+    FilterWant --> BookList
+    FilterReading --> BookList
+    FilterRead --> BookList
+
+    %% Navigation Bar
+    Nav{Thanh điều hướng} -->|Click 'Sách'| BookList
+    Nav -->|Click 'Thể loại'| CatList[Trang Danh Sách Thể Loại]
+    Nav -->|Click 'Thư viện sách'| Home
+
     %% Module Sách
-    Nav -->|/books| BookList[Trang Danh Sách Sách]
     BookList --> FilterAction[Lọc theo Tên, Thể loại, Trạng thái]
     FilterAction --> BookList
-    BookList -->|Click 'Thêm sách'| BookCreate[Form Thêm Sách]
+    BookList -->|Click 'Thêm sách'| BookCreate
     BookCreate -->|Submit + Upload Ảnh| StoreBook[BookController@store]
     StoreBook --> BookList
     
-    BookList -->|Click 'Tên sách'| BookShow[Xem Chi Tiết Sách]
+    BookList -->|Click 'Tên sách'| BookShow
     BookShow -->|Có ảnh| Layout2Col[Layout 2 cột: Thông tin bên trái, Ảnh bên phải]
     BookShow -->|Không có ảnh| Layout1Col[Layout 1 cột: Thông tin trải rộng]
     
@@ -81,12 +99,12 @@ flowchart TD
     BookEdit -->|Cập nhật + Thay ảnh mới| UpdateBook[BookController@update]
     UpdateBook --> BookList
     
-    BookList -->|Click icon 'Xóa'| DeleteBook[Xác nhận & Xóa Sách + Xóa file ảnh]
+    BookList -->|Click icon 'Xóa'| ConfirmModal[Modal Xác nhận Xóa tùy chỉnh]
+    ConfirmModal -->|Xác nhận| DeleteBook[Xóa Sách + Xóa file ảnh]
     DeleteBook --> BookList
 
     %% Module Thể loại
-    Nav -->|/categories| CatList[Trang Danh Sách Thể Loại]
-    CatList -->|Click 'Thêm thể loại'| CatCreate[Form Thêm Thể Loại]
+    CatList -->|Click 'Thêm thể loại'| CatCreate
     CatCreate -->|Submit| StoreCat[CategoryController@store]
     StoreCat --> CatList
     
@@ -97,7 +115,8 @@ flowchart TD
     CatEdit -->|Submit| UpdateCat[CategoryController@update]
     UpdateCat --> CatList
     
-    CatList -->|Click icon 'Xóa'| DeleteCat[Xác nhận & Xóa Thể Loại]
+    CatList -->|Click icon 'Xóa'| ConfirmModalCat[Modal Xác nhận Xóa tùy chỉnh]
+    ConfirmModalCat -->|Xác nhận| DeleteCat[Xóa Thể Loại]
     DeleteCat --> CatList
 ```
 
@@ -105,7 +124,36 @@ flowchart TD
 
 ## 4. Chi tiết các luồng chức năng (Functional Flows)
 
-### 4.1. Luồng Quản lý Sách (Book Management)
+### 4.1. Luồng Trang chủ (Home Dashboard Flow)
+
+#### A. Tổng quan màn hình Home (`GET /`)
+1. Người dùng truy cập trang chủ `/` (Route name: `home`).
+2. `HomeController@index` tổng hợp dữ liệu thống kê từ cơ sở dữ liệu:
+   - `totalBooks`: Tổng số cuốn sách hiện có (`Book::count()`).
+   - `wantCount`: Số sách ở trạng thái *Want to Read* (`Book::where('status', 'Want to Read')->count()`).
+   - `readingCount`: Số sách ở trạng thái *Reading* (`Book::where('status', 'Reading')->count()`).
+   - `readCount`: Số sách ở trạng thái *Read* (`Book::where('status', 'Read')->count()`).
+   - `recentBooks`: 5 cuốn sách được thêm mới gần đây nhất kèm thông tin thể loại (`Book::with('category')->latest()->take(5)->get()`).
+3. Render giao diện [`resources/views/home.blade.php`](file:///c:/laragon/www/project_laravel/resources/views/home.blade.php).
+
+#### B. Các tính năng tương tác tại màn hình Home
+- **Hero Actions**: 2 nút thao tác nhanh đồng bộ màu (`btn btn-primary`):
+  - **`+ Thêm sách`**: Chuyển thẳng đến form thêm sách mới (`books.create`).
+  - **`+ Thêm thể loại`**: Chuyển thẳng đến form thêm thể loại mới (`categories.create`).
+- **Thẻ thống kê tương tác (Clickable Stats Cards)**:
+  - Khi hover: Thẻ nổi lên mượt mà (`translateY(-3px)` + `box-shadow`) và chuyển màu số sang vàng kim.
+  - Khi click vào **Tổng số sách**: Mở danh sách toàn bộ sách (`/books`).
+  - Khi click vào **Muốn đọc**: Mở danh sách sách với bộ lọc tự động `status=Want to Read` (`/books?status=Want+to+Read`).
+  - Khi click vào **Đang đọc**: Mở danh sách sách với bộ lọc tự động `status=Reading` (`/books?status=Reading`).
+  - Khi click vào **Đã đọc**: Mở danh sách sách với bộ lọc tự động `status=Read` (`/books?status=Read`).
+- **Mục "Mới thêm gần đây"**:
+  - Liệt kê tối đa 5 cuốn sách mới nhất gồm ảnh thumbnail (hoặc icon sách mặc định), tên sách, thể loại và nhãn trạng thái đọc.
+  - Nhấp vào bất kỳ cuốn sách nào sẽ mở ngay trang chi tiết cuốn sách đó (`books.show`).
+  - Nếu chưa có cuốn sách nào, hiển thị ô trống kèm lời gợi ý thêm cuốn sách đầu tiên.
+
+---
+
+### 4.2. Luồng Quản lý Sách (Book Management)
 
 #### A. Xem và Lọc danh sách sách (`GET /books`)
 1. Người dùng truy cập `/books`.
@@ -230,7 +278,7 @@ erDiagram
 
 | Phương thức HTTP | URI Path | Route Name | Action Controller | Mô tả |
 | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/` | `welcome` | `Closure` | Trang chủ mặc định |
+| `GET` | `/` | `home` | `HomeController@index` | Trang chủ Dashboard thống kê & mới thêm |
 | `GET` | `/books` | `books.index` | `BookController@index` | Danh sách sách, tìm kiếm & lọc |
 | `GET` | `/books/create` | `books.create` | `BookController@create` | Giao diện thêm sách mới |
 | `POST` | `/books` | `books.store` | `BookController@store` | Lưu sách mới & upload ảnh |

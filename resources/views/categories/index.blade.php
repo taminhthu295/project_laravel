@@ -83,6 +83,7 @@
 
                                 {{-- XÓA --}}
                                 <form
+                                    id="delete-cat-{{ $category->id }}"
                                     action="{{ route('categories.destroy', $category) }}"
                                     method="POST"
                                 >
@@ -90,11 +91,11 @@
                                     @method('DELETE')
 
                                     <button
-                                        type="submit"
+                                        type="button"
                                         class="icon-button icon-button--danger"
                                         data-tooltip="Xóa"
                                         aria-label="Xóa"
-                                        onclick="return confirm('Xóa thể loại này?')"
+                                        onclick="openConfirmModal('Bạn có chắc muốn xóa thể loại &quot;{{ addslashes($category->name) }}&quot;?', 'delete-cat-{{ $category->id }}', 'Xóa thể loại')"
                                     >
                                         <svg
                                             viewBox="0 0 24 24"
