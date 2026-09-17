@@ -9,10 +9,10 @@
 <body>
     <header class="site-header">
         <div class="site-header__inner">
-            <div class="site-header__title">Thư viện sách</div>
+            <a href="{{ route('home') }}" class="site-header__title">Thư viện sách</a>
             <nav class="site-header__nav">
-                <a href="{{ route('books.index') }}">Sách</a>
-                <a href="{{ route('categories.index') }}">Thể loại</a>
+                <a href="{{ route('books.index') }}" class="{{ request()->routeIs('books.*') ? 'active' : '' }}">Sách</a>
+                <a href="{{ route('categories.index') }}" class="{{ request()->routeIs('categories.*') ? 'active' : '' }}">Thể loại</a>
             </nav>
         </div>
     </header>

@@ -7,7 +7,7 @@
     <p class="hero__tagline">Ghi lại hành trình đọc — từ những cuốn đang chờ, đến những cuốn đã gấp lại trang cuối.</p>
     <div class="hero__actions">
         <a href="{{ route('books.create') }}" class="btn btn-primary">+ Thêm sách</a>
-        <a href="{{ route('categories.create') }}" class="btn">+ Thêm thể loại</a>
+        <a href="{{ route('categories.create') }}" class="btn btn-primary">+ Thêm thể loại</a>
     </div>
 </div>
 
