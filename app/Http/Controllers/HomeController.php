@@ -6,6 +6,7 @@ use App\Models\Book;
 
 class HomeController extends Controller
 {
+    // Thống kê số lượng sách theo trạng thái và lấy 5 sách mới nhất cho trang chủ
     public function index()
     {
         $totalBooks = Book::count();
@@ -14,7 +15,6 @@ class HomeController extends Controller
         $readCount = Book::where('status', 'Read')->count();
 
         $recentBooks = Book::with('category')->latest()->take(5)->get();
-
         $quote = collect(config('quotes.reading'))->random();
 
         return view('home', compact(

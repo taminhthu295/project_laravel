@@ -1,3 +1,4 @@
+{{-- View: Danh sách sách kèm tìm kiếm, lọc theo thể loại/trạng thái và phân trang --}}
 @extends('layouts.app')
 
 @section('title', 'Danh sách sách')

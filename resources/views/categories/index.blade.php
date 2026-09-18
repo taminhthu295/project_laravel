@@ -1,3 +1,4 @@
+{{-- View: Danh sách thể loại kèm số lượng sách thuộc từng thể loại --}}
 @extends('layouts.app')
 
 @section('title', 'Danh sách thể loại')

@@ -1,3 +1,4 @@
+{{-- View: Trang chi tiết một cuốn sách (tữ điều hướng bởi BookController@show) --}}
 @extends('layouts.app')
 @section('title', $book->title)
 

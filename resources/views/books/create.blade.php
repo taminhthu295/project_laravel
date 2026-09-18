@@ -1,3 +1,4 @@
+{{-- View: Form nhập thông tin để thêm mới một cuốn sách vào thư viện --}}
 @extends('layouts.app')
 @section('title', 'Thêm sách')
 

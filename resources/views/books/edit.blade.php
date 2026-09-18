@@ -1,3 +1,4 @@
+{{-- View: Form chỉnh sửa thông tin sách, hiển thị sẵn dữ liệu cũ vào các ô input --}}
 @extends('layouts.app')
 @section('title', 'Sửa sách')
 

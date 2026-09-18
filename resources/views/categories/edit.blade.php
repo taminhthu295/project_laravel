@@ -1,3 +1,4 @@
+{{-- View: Form chỉnh sửa tên thể loại, hiển thị sẵn tên cũ vào ô input --}}
 @extends('layouts.app')
 @section('title', 'Sửa thể loại')
 

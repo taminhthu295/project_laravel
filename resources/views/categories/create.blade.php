@@ -1,3 +1,4 @@
+{{-- View: Form nhập tên để thêm mới một thể loại sách --}}
 @extends('layouts.app')
 @section('title', 'Thêm thể loại')
 

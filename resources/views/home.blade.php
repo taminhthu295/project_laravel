@@ -1,3 +1,4 @@
+{{-- View: Trang chủ hiển thị thống kê sách, 5 sách mới nhất và câu trích dẫn ngẫu nhiên --}}
 @extends('layouts.app')
 @section('title', 'Thư viện sách')
 
